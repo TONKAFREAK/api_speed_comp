@@ -67,7 +67,7 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
         // -----FONTS--------
         
-        Font consolab = fontLoader("/res/fonts/CONSOLAB.TTF", 12f);
+        Font consolab = fontLoader("CONSOLAB.TTF", 12f);
 
         //-------------- MENU BAR------------------------
 
@@ -206,17 +206,21 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
     private Font fontLoader(String fontPath, float fontSize) {
         try {
-            InputStream is = MainScreen.class.getResourceAsStream(fontPath);
+            InputStream is = getClass().getResourceAsStream("res/fonts/" + fontPath);
             if (is == null) {
-                System.err.println("Font file not found at " + fontPath);
+                System.err.println("Font file not found at res/fonts/" + fontPath);
                 return null;
             }
-            return Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(fontSize);
+            Font font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(fontSize);
+            is.close();
+            return font;
         } catch (FontFormatException | IOException e) {
             e.printStackTrace();
             return null;
         }
     }
+    
+    
 
     private Map<String, JTextArea> apiTextAreas = new HashMap<>();
 

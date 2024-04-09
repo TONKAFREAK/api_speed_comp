@@ -45,9 +45,9 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
         // -----FONTS--------
         
-        Font consolab = fontLoader("/res/fonts/CONSOLAB.TTF", 20f);
-        Font Duplexide = fontLoader("/res/fonts/Duplexide.TTF", 70f);
-        Font Enigma = fontLoader("/res/fonts/Enigma_2i.TTF", 15f);
+        Font consolab = fontLoader("CONSOLAB.TTF", 20f);
+        Font Duplexide = fontLoader("Duplexide.ttf", 70f);
+        Font Enigma = fontLoader("Enigma_2i.ttf", 15f);
         
         // -----MAIN PANEL--------
 
@@ -71,8 +71,8 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         tonka.setFocusable(false);       //REMOVE IF GAY
         tonka.setWrapStyleWord(true);
         tonka.setOpaque(false);
-        tonka.setFont(fontLoader("/res/fonts/Duplexide.TTF", 15f));
-        tonka.setText("by TONKA");
+        tonka.setFont(fontLoader("Duplexide.ttf", 15f));
+        tonka.setText("BY TONKA");
         mainPanel.add(tonka);
 
         JTextArea t2 = new JTextArea();
@@ -115,14 +115,14 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
         JButton addButton = new JButton("+");
         addButton.setBounds(700, 275,25,25);
-        addButton.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 20f));
+        addButton.setFont(fontLoader("CONSOLAB.TTF", 20f));
         addButton.setBorder(BorderFactory.createEmptyBorder());
         addButton.addActionListener(this);
         mainPanel.add(addButton);
 
         JButton removeButton = new JButton("-");
         removeButton.setBounds(700, 310,25,25);
-        removeButton.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 20f));
+        removeButton.setFont(fontLoader("CONSOLAB.TTF", 20f));
         removeButton.setBorder(BorderFactory.createEmptyBorder());
         removeButton.addActionListener(this);
         mainPanel.add(removeButton);
@@ -153,7 +153,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
                 error.setFocusable(false);
                 error.setWrapStyleWord(true);
                 error.setOpaque(true);
-                error.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 12f));
+                error.setFont(fontLoader("CONSOLAB.TTF", 12f));
                 error.setForeground(java.awt.Color.RED);
                 error.setText("Select APIs to use");
                 mainPanel.add(error);
@@ -197,21 +197,23 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
     public void keyReleased(KeyEvent e) {
     }
 
-    private static Font fontLoader(String fontPath, float fontSize) {
+    private Font fontLoader(String fontPath, float fontSize) {
         try {
-            InputStream is = StartScreen.class.getResourceAsStream(fontPath);
+            InputStream is = getClass().getResourceAsStream("res/fonts/" + fontPath);
+            System.out.println("Font URL: " + is);
             if (is == null) {
-                System.err.println("Font file not found at " + fontPath);
+                System.err.println("Font file not found at res/fonts/" + fontPath);
                 return null;
             }
             Font font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(fontSize);
-            is.close(); 
+            is.close();
             return font;
         } catch (FontFormatException | IOException e) {
             e.printStackTrace();
             return null;
         }
     }
+    
 
     private void loadAPIsAndCreateCheckboxes() {
         
@@ -230,7 +232,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
                         yPosition += 35; 
                     }
                     checkBox.setBounds(xPosition, yPosition, 120, 30);
-                    checkBox.setFont(fontLoader("/res/fonts/Enigma_2i.TTF", 15f));
+                    checkBox.setFont(fontLoader("Enigma_2i.ttf", 15f));
                     checkBox.setActionCommand(apiName);
                     checkBox.addActionListener(this);
                     mainPanel.add(checkBox);

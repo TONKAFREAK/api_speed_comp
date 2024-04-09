@@ -55,7 +55,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
 
         // -----FONTS--------
         
-        Font Enigma = fontLoader("/res/fonts/Enigma_2i.TTF", 15f);
+        Font Enigma = fontLoader("Enigma_2i.ttf", 15f);
         
         // -----MAIN PANEL--------
 
@@ -68,7 +68,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         apiText.setFocusable(false);
         apiText.setWrapStyleWord(true);
         apiText.setOpaque(false);
-        apiText.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 14f));
+        apiText.setFont(fontLoader("CONSOLAB.TTF", 14f));
         apiText.setText("API Name:");
         mainPanel.add(apiText);
 
@@ -77,7 +77,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         apiName.setEditable(true);
         apiName.setFocusable(true);
         apiName.setOpaque(false);
-        apiName.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 14f));
+        apiName.setFont(fontLoader("CONSOLAB.TTF", 14f));
         mainPanel.add(apiName);
 
         JTextArea endPointText = new JTextArea();
@@ -87,7 +87,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         endPointText.setFocusable(false);
         endPointText.setWrapStyleWord(true);
         endPointText.setOpaque(false);
-        endPointText.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 14f));
+        endPointText.setFont(fontLoader("CONSOLAB.TTF", 14f));
         endPointText.setText("Endpoint URL:");
         mainPanel.add(endPointText);
 
@@ -96,7 +96,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         endpointURL.setEditable(true);
         endpointURL.setFocusable(true);
         endpointURL.setOpaque(false);
-        endpointURL.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 14f));
+        endpointURL.setFont(fontLoader("CONSOLAB.TTF", 14f));
         mainPanel.add(endpointURL);
 
         JTextArea keyText = new JTextArea();
@@ -106,7 +106,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         keyText.setFocusable(false);
         keyText.setWrapStyleWord(true);
         keyText.setOpaque(false);
-        keyText.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 14f));
+        keyText.setFont(fontLoader("CONSOLAB.TTF", 14f));
         keyText.setText("API Key:");
         mainPanel.add(keyText);
 
@@ -116,7 +116,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         keyAPI.setFocusable(true);
         keyAPI.setOpaque(false);
         keyAPI.setHorizontalAlignment(SwingConstants.LEFT);
-        keyAPI.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 14f));
+        keyAPI.setFont(fontLoader("CONSOLAB.TTF", 14f));
         mainPanel.add(keyAPI);
 
         JButton sendButton = new JButton("--->");
@@ -159,7 +159,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
                 error.setFocusable(false);
                 error.setWrapStyleWord(true);
                 error.setOpaque(false);
-                error.setFont(fontLoader("/res/fonts/Roboto-Regular.TTF", 12f));
+                error.setFont(fontLoader("Roboto-Regular.TTF", 12f));
                 error.setText("Please fill in all the fields");
                 error.setForeground(java.awt.Color.RED);
                 error.setBounds( wWidth/2-65, 200, 150, 25);
@@ -184,21 +184,22 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
 
     // -----FONT LOADER--------
 
-    public static Font fontLoader(String fontPath, float fontSize) {
+    private Font fontLoader(String fontPath, float fontSize) {
         try {
-            InputStream is = StartScreen.class.getResourceAsStream(fontPath);
+            InputStream is = getClass().getResourceAsStream("res/fonts/" + fontPath);
             if (is == null) {
-                System.err.println("Font file not found at " + fontPath);
+                System.err.println("Font file not found at res/fonts/" + fontPath);
                 return null;
             }
             Font font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(fontSize);
-            is.close(); 
+            is.close();
             return font;
         } catch (FontFormatException | IOException e) {
             e.printStackTrace();
             return null;
         }
     }
+    
 
     public void saveAPIDetailsToFile(String apiName, String apiUrl, String apiKey) {
         
