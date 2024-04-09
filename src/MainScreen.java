@@ -38,6 +38,10 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
     private boolean zukiAPI;
     private String selectedModel;
     private JButton sendButton;
+
+    public MainScreen(){
+        //no-arg constructor
+    }
     
     public MainScreen(boolean shardAPI, boolean oxygenAPI, boolean shuttleAPI, boolean zukiAPI, String selectedModel) {
 
@@ -56,6 +60,7 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
         setVisible(false);
+        setTitle(selectedModel);
 
         // System.out.println("-------");
         // System.out.println("Shard API: " + shardAPI);
@@ -72,7 +77,7 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
         // -----FONTS--------
         
-        Font consolab = fontLoader("/res/fonts/CONSOLAB.TTF", 14f);
+        Font consolab = fontLoader("/res/fonts/CONSOLAB.TTF", 12f);
 
         //-------------- MENU BAR------------------------
 
@@ -128,6 +133,12 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
         if (shardAPI) {
             apiPanel.add(createApiPanel("Shard API"));
         }
+        if (AddAPI.api_Endpoint.size() > 0 && AddAPI.api_Key.size() > 0 && AddAPI.api_Name.size() > 0){
+            for (int i = 0; i < AddAPI.api_Endpoint.size(); i++) {
+                apiPanel.add(createApiPanel(AddAPI.api_Name.get(i)));
+            }
+            
+        }
         
         
         add(apiPanel, BorderLayout.CENTER);
@@ -181,6 +192,12 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
                     futures.add(sendHttpRequest("Zuki API", zuki_url, zuki_key, selectedModel, prompt));
                 }
 
+                if (AddAPI.api_Endpoint.size() > 0 && AddAPI.api_Key.size() > 0 && AddAPI.api_Name.size() > 0){
+                    for (int i = 0; i < AddAPI.api_Endpoint.size(); i++) {
+                        futures.add(sendHttpRequest(AddAPI.api_Name.get(i), AddAPI.api_Endpoint.get(i), AddAPI.api_Key.get(i), selectedModel, prompt));
+                    }
+                }
+
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
             
@@ -188,7 +205,7 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
         }).start(); // Start the background thread
 
         Timer timer = new Timer(5000, event -> sendButton.setEnabled(true));
-        timer.setRepeats(false); // Ensure the timer only fires once
+        timer.setRepeats(false); 
         timer.start();
     }
 }
@@ -202,7 +219,7 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getSource() == inputField && e.getKeyCode() == KeyEvent.VK_ENTER) {
-            // Create an ActionEvent for the "Send" button and trigger actionPerformed
+           
             ActionEvent sendEvent = new ActionEvent(sendButton, ActionEvent.ACTION_PERFORMED, "Send");
             actionPerformed(sendEvent);
         }
@@ -273,72 +290,91 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
     //----------------- HTTP REQUEST -------------------
 
-    private CompletableFuture<Void> sendHttpRequest(String name, String url, String api_key, String model, String prompt) {
+    private Map<String, List<String>> apiChatHistories = new HashMap<>();
 
-        //System.out.println("Sending HTTP request to " + url + " with API key " + api_key + " and model " + model + " and prompt " + prompt+ " for " + name + " API\n" );
-        HttpClient client = HttpClient.newBuilder()
-            .version(Version.HTTP_2)  
-            .build();
+private CompletableFuture<Void> sendHttpRequest(String name, String url, String api_key, String model, String prompt) {
+    HttpClient client = HttpClient.newBuilder()
+        .version(Version.HTTP_2)
+        .build();
 
-            JSONObject userMessage = new JSONObject();
-            userMessage.put("role", "user");
-            userMessage.put("content", prompt);
-        
-            JSONArray messages = new JSONArray();
-            messages.put(userMessage);
-        
-            JSONObject data = new JSONObject();
-            data.put("model", model);
-            data.put("messages", messages);
-            data.put("stream", false);  
-
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url)) 
-            .timeout(Duration.ofMinutes(2)) 
-            .header("Authorization", "Bearer " + api_key) 
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(data.toString()))  
-            .build();
-
-        // Capture start time
-        long startTime = System.nanoTime();
-        
-            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApply(HttpResponse::body)
-            .thenAccept(responseBody -> {
-                SwingUtilities.invokeLater(() -> {
-                    try {
-                        if (responseBody.trim().startsWith("{")) {
-                            JSONObject responseJson = new JSONObject(responseBody);
-                            long endTime = System.nanoTime();
-                            long duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
-                            String content = "";
-                            JTextArea textArea = apiTextAreas.get(name); 
-                            //System.out.println("Retrieving text area for: " + name + ", found: " + textArea);
-                            try{
-                                content = responseJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
-                            } catch (Exception e) {
-                                System.err.println("Error: " + e.getMessage() + "" + responseJson.toString());
-                                textArea.append("\n>> Need premium key to use "+model); // Append the response
-                                return;
-                            }
-                            //System.out.println("Response from " + name + " API: " + content);
-                            if (textArea != null) {
-                                textArea.append("\n>> Response Time: " +duration+" ms\n" +content + "\n"); // Append the response
-                            }
-                        } else {
-                            System.err.println("Response is not JSON or there was an error: " + responseBody);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            })
-            .exceptionally(e -> {
-                e.printStackTrace();
-                return null;
-            });
+    // Preparing the messages to include in the request
+    JSONArray messages = new JSONArray();
+    // Add previous chat history to the messages array
+    List<String> chatHistory = apiChatHistories.getOrDefault(name, new ArrayList<>());
+    for (String message : chatHistory) {
+        JSONObject msgObj = new JSONObject();
+        msgObj.put("role", message.startsWith("User:") ? "user" : "system");
+        msgObj.put("content", message.substring(message.indexOf(':') + 2)); // Skipping past "User: " or "API Name Response: "
+        messages.put(msgObj);
     }
+
+    // Add the new user message to the history for the current request
+    JSONObject newUserMessage = new JSONObject();
+    newUserMessage.put("role", "user");
+    newUserMessage.put("content", prompt);
+    messages.put(newUserMessage);
+
+    JSONObject data = new JSONObject();
+    data.put("model", model);
+    data.put("messages", messages);
+    data.put("stream", false);
+
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(url))
+        .timeout(Duration.ofMinutes(2))
+        .header("Authorization", "Bearer " + api_key)
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(data.toString()))
+        .build();
+
+    long startTime = System.nanoTime();
+
+    return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        .thenApply(HttpResponse::body)
+        .thenAccept(responseBody -> {
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    if (responseBody.trim().startsWith("{")) {
+                        JSONObject responseJson = new JSONObject(responseBody);
+                        long endTime = System.nanoTime();
+                        long duration = (endTime - startTime) / 1_000_000;
+                        JTextArea textArea = apiTextAreas.get(name); // Assuming this is defined elsewhere
+                        String content = "";
+
+                        try {
+                            content = responseJson.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+                            // Add the new messages (user prompt and API response) to chat history
+                            addMessageToChatHistory(name, "User: " + prompt, name + " Response: " + content);
+                        } catch (Exception e) {
+                            System.err.println("Error: " + e.getMessage() + " " + responseJson.toString());
+                            textArea.append("\n>> Need premium key to use " + model);
+                            return;
+                        }
+
+                        if (textArea != null) {
+                            textArea.append("\n>> Response Time: " + duration + " ms\n" + content + "\n");
+                        }
+                    } else {
+                        System.err.println("Response is not JSON or there was an error: " + responseBody);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        })
+        .exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
+}
+
+// Adjusted to store full messages for both user and API response
+private void addMessageToChatHistory(String name, String userPrompt, String apiResponse) {
+    apiChatHistories.putIfAbsent(name, new ArrayList<>());
+    List<String> chatHistory = apiChatHistories.get(name);
+    chatHistory.add(userPrompt); // Now storing full string including "User: "
+    chatHistory.add(apiResponse); // Storing full response string including "API Name Response: "
+}
     
 
 }

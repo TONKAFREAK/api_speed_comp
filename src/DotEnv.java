@@ -15,14 +15,13 @@ public class DotEnv {
 
             for (String line : lines) {
                 if (line.trim().isEmpty() || line.startsWith("#")) {
-                    // Ignore empty lines and comments in the .env file
                     continue;
                 }
 
                 String[] parts = line.split("=", 2);
                 if (parts.length == 2) {
                     String key = parts[0].trim();
-                    String value = parts[1].trim().replaceAll("^\"|\"$", ""); // Remove surrounding quotes
+                    String value = parts[1].trim().replaceAll("^\"|\"$", ""); 
                     env.put(key, value);
                 }
             }

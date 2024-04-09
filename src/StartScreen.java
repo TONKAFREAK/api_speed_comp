@@ -23,6 +23,8 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
     JComboBox<String> selectBox;
 
+    JPanel mainPanel;
+
     public StartScreen() {
         initUI();
         addActionEvents();
@@ -48,7 +50,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         
         // -----MAIN PANEL--------
 
-        JPanel mainPanel = new JPanel(null);
+        mainPanel = new JPanel(null);
 
         JTextArea t1 = new JTextArea();
         t1.setBounds(wWidth/2 - 300, 100, 600, 150);
@@ -117,11 +119,21 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         zuki.addActionListener(this);
         mainPanel.add(zuki);
 
+        
+
         JButton sendButton = new JButton("---->");
         sendButton.setBounds(wWidth/2 - 100,450,200,50);
         sendButton.setFont(Enigma);
         sendButton.addActionListener(this);
         mainPanel.add(sendButton);
+
+        JButton addButton = new JButton("+");
+        addButton.setBounds(oxygen.getX()+oxygen.getWidth(), 275,25,25);
+        addButton.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 20f));
+        addButton.setBorder(BorderFactory.createEmptyBorder());
+        addButton.addActionListener(this);
+        mainPanel.add(addButton);
+
 
         this.add(mainPanel, BorderLayout.CENTER);
 
@@ -136,16 +148,30 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
             JComboBox<?> cb = (JComboBox<?>) e.getSource();
             selectedModel = (String) cb.getSelectedItem();
         } else
-        if (e.getActionCommand().equals("---->")) {
+        if (e.getActionCommand().equals("---->") ) {
             // System.out.println("Selected model: " + selectedModel);
             // System.out.println("Shard API: " + shardAPI);
             // System.out.println("Oxygen API: " + oxygenAPI);
             // System.out.println("Shuttle API: " + shuttleAPI);
             // System.out.println("Zuki API: " + zukiAPI);
-
+            if(shardAPI || oxygenAPI || shuttleAPI || zukiAPI){
             App.openMainScreen(shardAPI, oxygenAPI, shuttleAPI, zukiAPI, selectedModel);
             this.setVisible(false);
             this.dispose();
+            } else {
+                JTextArea error = new JTextArea();
+                error.setBounds(wWidth/2 - 75,430, 300, 300);
+                error.setEditable(false);
+                error.setLineWrap(false);
+                error.setFocusable(false);
+                error.setWrapStyleWord(true);
+                error.setOpaque(true);
+                error.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 12f));
+                error.setForeground(java.awt.Color.RED);
+                error.setText("Select APIs to use");
+                mainPanel.add(error);
+                mainPanel.repaint();
+            }
 
         } else if (e.getActionCommand().equals("Shard API")) {
             shardAPI = !shardAPI;
@@ -155,6 +181,13 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
             shuttleAPI = !shuttleAPI;
         } else if (e.getActionCommand().equals("Zuki API")) {
             zukiAPI = !zukiAPI;
+        }
+
+        if (e.getActionCommand().equals("+") ) {
+
+            AddAPI addAPI = new AddAPI();
+            addAPI.setVisible(true);
+
         }
     }
 
