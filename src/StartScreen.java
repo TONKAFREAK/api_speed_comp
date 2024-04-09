@@ -1,33 +1,33 @@
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 import javax.swing.*;
 
 public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
     private String selectedModel = "gpt-3.5-turbo";
-    private boolean shardAPI = false;
-    private boolean oxygenAPI = false;
-    private boolean shuttleAPI = false;
-    private boolean zukiAPI = false;
-
     private int wWidth = 800;
     private int wHeight = 600;
 
-    JComboBox<String> selectBox;
+    private JComboBox<String> selectBox;
 
-    JPanel mainPanel;
+    private HashMap<String, Boolean> apiSelections = new HashMap<>();
+
+    private JPanel mainPanel;
 
     public StartScreen() {
         initUI();
-        addActionEvents();
         setUndecorated(false);
         setTitle("");
         setSize(wWidth, wHeight);
@@ -63,6 +63,17 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         t1.setText("API SPEED TEST");
         mainPanel.add(t1);
 
+        JTextArea tonka = new JTextArea();
+        tonka.setBounds(560, 180, 600, 150);
+        tonka.setEditable(false);
+        tonka.setLineWrap(false);
+        tonka.setFocusable(false);       //REMOVE IF GAY ONG
+        tonka.setWrapStyleWord(true);
+        tonka.setOpaque(false);
+        tonka.setFont(fontLoader("/res/fonts/Duplexide.TTF", 15f));
+        tonka.setText("by TONKA");
+        mainPanel.add(tonka);
+
         JTextArea t2 = new JTextArea();
         t2.setBounds(t1.getX(), 250, 330, 30);
         t2.setEditable(false);
@@ -95,32 +106,6 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         t3.setText("Select APIs to use:");
         mainPanel.add(t3);
 
-        JCheckBox shard = new JCheckBox("Shard API");
-        shard.setBounds(t3.getX()+5, 270, 120, 30);
-        shard.setFont(Enigma);
-        shard.addActionListener(this);
-        mainPanel.add(shard);
-
-        JCheckBox oxygen = new JCheckBox("Oxygen API");
-        oxygen.setBounds(shard.getX()+shard.getWidth(), 270, 120, 30);
-        oxygen.setFont(Enigma);
-        oxygen.addActionListener(this);
-        mainPanel.add(oxygen);
-
-        JCheckBox shuttle = new JCheckBox("Shuttle API");
-        shuttle.setBounds(shard.getX(), shard.getY()+shard.getHeight(), 120, 30);
-        shuttle.setFont(Enigma);
-        shuttle.addActionListener(this);
-        mainPanel.add(shuttle);
-
-        JCheckBox zuki = new JCheckBox("Zuki API");
-        zuki.setBounds(shuttle.getX() + shuttle.getWidth(), shuttle.getY(), 120, 30);
-        zuki.setFont(Enigma);
-        zuki.addActionListener(this);
-        mainPanel.add(zuki);
-
-        
-
         JButton sendButton = new JButton("---->");
         sendButton.setBounds(wWidth/2 - 100,450,200,50);
         sendButton.setFont(Enigma);
@@ -128,34 +113,35 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         mainPanel.add(sendButton);
 
         JButton addButton = new JButton("+");
-        addButton.setBounds(oxygen.getX()+oxygen.getWidth(), 275,25,25);
+        addButton.setBounds(700, 275,25,25);
         addButton.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 20f));
         addButton.setBorder(BorderFactory.createEmptyBorder());
         addButton.addActionListener(this);
         mainPanel.add(addButton);
 
+        JButton removeButton = new JButton("-");
+        removeButton.setBounds(700, 310,25,25);
+        removeButton.setFont(fontLoader("/res/fonts/CONSOLAB.TTF", 20f));
+        removeButton.setBorder(BorderFactory.createEmptyBorder());
+        removeButton.addActionListener(this);
+        mainPanel.add(removeButton);
 
+        loadAPIsAndCreateCheckboxes();
         this.add(mainPanel, BorderLayout.CENTER);
 
     }
     
-    private void addActionEvents() {
-    }
-    
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() instanceof JComboBox) {
-            JComboBox<?> cb = (JComboBox<?>) e.getSource();
-            selectedModel = (String) cb.getSelectedItem();
+        if (e.getSource() instanceof JCheckBox) {
+            JCheckBox checkBox = (JCheckBox) e.getSource();
+            apiSelections.put(checkBox.getActionCommand(), checkBox.isSelected());
         } else
         if (e.getActionCommand().equals("---->") ) {
-            // System.out.println("Selected model: " + selectedModel);
-            // System.out.println("Shard API: " + shardAPI);
-            // System.out.println("Oxygen API: " + oxygenAPI);
-            // System.out.println("Shuttle API: " + shuttleAPI);
-            // System.out.println("Zuki API: " + zukiAPI);
-            if(shardAPI || oxygenAPI || shuttleAPI || zukiAPI){
-            App.openMainScreen(shardAPI, oxygenAPI, shuttleAPI, zukiAPI, selectedModel);
+           
+
+            if(apiSelections.containsValue(true)){
+            App.openMainScreen(apiSelections, selectedModel);
             this.setVisible(false);
             this.dispose();
             } else {
@@ -173,20 +159,22 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
                 mainPanel.repaint();
             }
 
-        } else if (e.getActionCommand().equals("Shard API")) {
-            shardAPI = !shardAPI;
-        } else if (e.getActionCommand().equals("Oxygen API")) {
-            oxygenAPI = !oxygenAPI;
-        } else if (e.getActionCommand().equals("Shuttle API")) {
-            shuttleAPI = !shuttleAPI;
-        } else if (e.getActionCommand().equals("Zuki API")) {
-            zukiAPI = !zukiAPI;
-        }
+        } 
 
         if (e.getActionCommand().equals("+") ) {
 
-            AddAPI addAPI = new AddAPI();
+            AddAPI addAPI = new AddAPI(this);
             addAPI.setVisible(true);
+
+        }
+
+        if (e.getActionCommand().equals("-") ) {
+            
+            if(panelHasCheckBox(mainPanel)){
+            
+            RemoveAPI addAPI = new RemoveAPI(this);
+            addAPI.setVisible(true);
+            }
 
         }
     }
@@ -203,7 +191,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
     public void keyReleased(KeyEvent e) {
     }
 
-    public static Font fontLoader(String fontPath, float fontSize) {
+    private static Font fontLoader(String fontPath, float fontSize) {
         try {
             InputStream is = StartScreen.class.getResourceAsStream(fontPath);
             if (is == null) {
@@ -219,24 +207,51 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         }
     }
 
-    public boolean getShardAPI() {
-        return shardAPI;
+    private void loadAPIsAndCreateCheckboxes() {
+        
+        String filePath = "api_list.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            int count = 0;
+            int yPosition = 275; 
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("--")) {
+                    String apiName = line.substring(2).trim();
+                    JCheckBox checkBox = new JCheckBox(apiName + " ");
+                    
+                    int xPosition = (count % 2 == 0) ? 435 : 435 + 120 + 5; 
+                    if (count % 2 == 0 && count > 0) {
+                        yPosition += 35; 
+                    }
+                    checkBox.setBounds(xPosition, yPosition, 120, 30);
+                    checkBox.setFont(fontLoader("/res/fonts/Enigma_2i.TTF", 15f));
+                    checkBox.setActionCommand(apiName);
+                    checkBox.addActionListener(this);
+                    mainPanel.add(checkBox);
+                    count++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public boolean getOxygenAPI() {
-        return oxygenAPI;
+    public void reloadAPIsAndCheckboxes() {
+        mainPanel.removeAll(); 
+        initUI(); 
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
 
-    public boolean getShuttleAPI() {
-        return shuttleAPI;
+    private boolean panelHasCheckBox(JPanel panel) {
+        Component[] components = panel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JCheckBox) {
+                return true; 
+            }
+        }
+        return false; 
     }
-
-    public boolean getZukiAPI() {
-        return zukiAPI;
-    }
-
-    public String getSelectedModel() {
-        return selectedModel;
-    }
+    
     
 }

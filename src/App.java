@@ -1,3 +1,5 @@
+import java.util.Map;
+
 import javax.swing.*;
 
 public class App extends JFrame{
@@ -9,32 +11,13 @@ public class App extends JFrame{
 		
 	}
 
-    public static STATE State = STATE.Start;
-
-    public static void transitionToState(STATE newState) {
-
-        State = newState; 
-
+    public static void openMainScreen(Map<String, Boolean> apiSelections, String selectedModel) {
         SwingUtilities.invokeLater(() -> {
-            switch (State) {
-                case Start:
-                    StartScreen startScreen = new StartScreen();
-                    startScreen.setVisible(true);
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + State);
-            }
-        });
-    }
-
-    public static void openMainScreen(boolean shardAPI, boolean oxygenAPI, boolean shuttleAPI, boolean zukiAPI, String selectedModel) {
-        SwingUtilities.invokeLater(() -> {
-            MainScreen mainScreen = new MainScreen(shardAPI, oxygenAPI, shuttleAPI, zukiAPI, selectedModel);
+            MainScreen mainScreen = new MainScreen(apiSelections, selectedModel);
             mainScreen.setVisible(true);
         });
     }
     
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
@@ -45,7 +28,8 @@ public class App extends JFrame{
                 e.printStackTrace();
             }
 
-            transitionToState(State);
+            StartScreen startScreen = new StartScreen();
+            startScreen.setVisible(true);
             
 
         

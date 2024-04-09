@@ -32,24 +32,20 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
     JMenuBar menuBar;
     JTextField inputField;
 
-    private boolean shardAPI;
-    private boolean oxygenAPI;
-    private boolean shuttleAPI;
-    private boolean zukiAPI;
     private String selectedModel;
     private JButton sendButton;
+    private Map<String, Boolean> apiSelections;
+    private Map<String, String[]> apiDetails = new HashMap<>();
 
     public MainScreen(){
         //no-arg constructor
     }
     
-    public MainScreen(boolean shardAPI, boolean oxygenAPI, boolean shuttleAPI, boolean zukiAPI, String selectedModel) {
+    public MainScreen(Map<String, Boolean> apiSelections, String selectedModel) {
 
-        this.shardAPI = shardAPI;
-        this.oxygenAPI = oxygenAPI;
-        this.shuttleAPI = shuttleAPI;
-        this.zukiAPI = zukiAPI;
+        this.apiSelections = apiSelections;
         this.selectedModel = selectedModel;
+
         
         initUI();
         addActionEvents();
@@ -62,16 +58,10 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
         setVisible(false);
         setTitle(selectedModel);
 
-        // System.out.println("-------");
-        // System.out.println("Shard API: " + shardAPI);
-        // System.out.println("Oxygen API: " + oxygenAPI);
-        // System.out.println("Shuttle API: " + shuttleAPI);
-        // System.out.println("Zuki API: " + zukiAPI);
-        // System.out.println("Selected Model: " + selectedModel);
-
     }
     
     private void initUI() {
+        
 
         this.setLayout(new BorderLayout());
 
@@ -118,29 +108,14 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
         //-------------- API PANEL ---------------------
 
         JPanel apiPanel = new JPanel();
-        apiPanel.setLayout(new BoxLayout(apiPanel, BoxLayout.X_AXIS)); 
-        
-       
-        if (zukiAPI) {
-            apiPanel.add(createApiPanel("Zuki API"));
-        }
-        if (shuttleAPI) {
-            apiPanel.add(createApiPanel("Shuttle API"));
-        }
-        if (oxygenAPI) {
-            apiPanel.add(createApiPanel("Oxygen API"));
-        }
-        if (shardAPI) {
-            apiPanel.add(createApiPanel("Shard API"));
-        }
-        if (AddAPI.api_Endpoint.size() > 0 && AddAPI.api_Key.size() > 0 && AddAPI.api_Name.size() > 0){
-            for (int i = 0; i < AddAPI.api_Endpoint.size(); i++) {
-                apiPanel.add(createApiPanel(AddAPI.api_Name.get(i)));
+        apiPanel.setLayout(new BoxLayout(apiPanel, BoxLayout.X_AXIS));
+    
+        apiSelections.forEach((apiName, isSelected) -> {
+            if (Boolean.TRUE.equals(isSelected)) {
+                apiPanel.add(createApiPanel(apiName));
             }
-            
-        }
-        
-        
+        });
+    
         add(apiPanel, BorderLayout.CENTER);
 
     }
@@ -149,6 +124,26 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
         inputField.addKeyListener(this);
 
+    }
+
+    private void loadApiDetailsFromFile(String filePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            String currentApiName = null;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("--")) {
+                    currentApiName = line.substring(2).trim(); 
+                } else if (!line.trim().isEmpty() && currentApiName != null) {
+                   
+                    String url = line.trim();
+                    String key = reader.readLine().trim();
+                    apiDetails.put(currentApiName, new String[]{url, key});
+                    currentApiName = null;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     
@@ -163,54 +158,32 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
             String prompt = inputField.getText();
             inputField.setText(""); 
 
+            loadApiDetailsFromFile("api_list.txt");
+
             new Thread(() -> {
-                Map<String, String> env = DotEnv.loadEnv();
-                String shard_url = env.get("SHARD_URL").trim();
-                String shard_key = env.get("SHARD_API_KEY").trim();
-
-                String zuki_url = env.get("ZUKI_URL").trim();
-                String zuki_key = env.get("ZUKI_API_KEY").trim();
-
-                String shuttle_url = env.get("SHUTTLE_URL").trim();
-                String shuttle_key = env.get("SHUTTLE_API_KEY").trim();
-
-                String oxygen_url = env.get("OXYGEN_URL").trim();
-                String oxygen_key = env.get("OXYGEN_API_KEY").trim();
-
+                 
                 List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-                if (shardAPI) {
-                    futures.add(sendHttpRequest("Shard API", shard_url, shard_key, selectedModel, prompt));
-                }
-                if (oxygenAPI) {
-                    futures.add(sendHttpRequest("Oxygen API", oxygen_url, oxygen_key, selectedModel, prompt));
-                }
-                if (shuttleAPI) {
-                    futures.add(sendHttpRequest("Shuttle API", shuttle_url, shuttle_key, selectedModel, prompt));
-                }
-                if (zukiAPI) {
-                    futures.add(sendHttpRequest("Zuki API", zuki_url, zuki_key, selectedModel, prompt));
-                }
-
-                if (AddAPI.api_Endpoint.size() > 0 && AddAPI.api_Key.size() > 0 && AddAPI.api_Name.size() > 0){
-                    for (int i = 0; i < AddAPI.api_Endpoint.size(); i++) {
-                        futures.add(sendHttpRequest(AddAPI.api_Name.get(i), AddAPI.api_Endpoint.get(i), AddAPI.api_Key.get(i), selectedModel, prompt));
+                apiSelections.forEach((apiName, isSelected) -> {
+                    if (Boolean.TRUE.equals(isSelected)) {
+                        String[] details = apiDetails.get(apiName);
+                        if (details != null) {
+                            futures.add(sendHttpRequest(apiName, details[0], details[1], selectedModel, prompt));
+                        }
                     }
-                }
-
+                });
+                
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
             
 
         }).start(); // Start the background thread
 
-        Timer timer = new Timer(5000, event -> sendButton.setEnabled(true));
+        Timer timer = new Timer(3000, event -> sendButton.setEnabled(true));
         timer.setRepeats(false); 
         timer.start();
     }
 }
-
-
     //----------------- KEY LISTENERS -------------------
 
     @Override
@@ -231,7 +204,7 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
     //----------------- FONT LOADER -------------------
 
-    public static Font fontLoader(String fontPath, float fontSize) {
+    private Font fontLoader(String fontPath, float fontSize) {
         try {
             InputStream is = MainScreen.class.getResourceAsStream(fontPath);
             if (is == null) {
@@ -292,23 +265,23 @@ public class MainScreen extends JFrame implements ActionListener, KeyListener {
 
     private Map<String, List<String>> apiChatHistories = new HashMap<>();
 
-private CompletableFuture<Void> sendHttpRequest(String name, String url, String api_key, String model, String prompt) {
+    private CompletableFuture<Void> sendHttpRequest(String name, String url, String api_key, String model, String prompt) {
     HttpClient client = HttpClient.newBuilder()
         .version(Version.HTTP_2)
         .build();
 
-    // Preparing the messages to include in the request
+   
     JSONArray messages = new JSONArray();
-    // Add previous chat history to the messages array
+    
     List<String> chatHistory = apiChatHistories.getOrDefault(name, new ArrayList<>());
     for (String message : chatHistory) {
         JSONObject msgObj = new JSONObject();
         msgObj.put("role", message.startsWith("User:") ? "user" : "system");
-        msgObj.put("content", message.substring(message.indexOf(':') + 2)); // Skipping past "User: " or "API Name Response: "
+        msgObj.put("content", message.substring(message.indexOf(':') + 2)); 
         messages.put(msgObj);
     }
 
-    // Add the new user message to the history for the current request
+   
     JSONObject newUserMessage = new JSONObject();
     newUserMessage.put("role", "user");
     newUserMessage.put("content", prompt);
@@ -368,12 +341,11 @@ private CompletableFuture<Void> sendHttpRequest(String name, String url, String 
         });
 }
 
-// Adjusted to store full messages for both user and API response
 private void addMessageToChatHistory(String name, String userPrompt, String apiResponse) {
     apiChatHistories.putIfAbsent(name, new ArrayList<>());
     List<String> chatHistory = apiChatHistories.get(name);
-    chatHistory.add(userPrompt); // Now storing full string including "User: "
-    chatHistory.add(apiResponse); // Storing full response string including "API Name Response: "
+    chatHistory.add(userPrompt); 
+    chatHistory.add(apiResponse); 
 }
     
 

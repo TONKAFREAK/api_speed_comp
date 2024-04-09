@@ -5,13 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -31,12 +28,14 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
     JTextField apiName;
     JTextArea error;
 
-    public static ArrayList<String> api_Name = new ArrayList<String>();
-    public static ArrayList<String> api_Endpoint = new ArrayList<String>();
-    public static ArrayList<String> api_Key = new ArrayList<String>();
+    private String api_Name = "";
+    private String api_Endpoint = "";
+    private String api_Key = "";
 
+    private StartScreen startScreen;
 
-    public AddAPI() {
+    public AddAPI(StartScreen startScreen) {
+        this.startScreen = startScreen;
         initUI();
         addActionEvents();
         setUndecorated(false);
@@ -129,10 +128,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         this.add(mainPanel, BorderLayout.CENTER);
 
 
-
     }
-
-    
 
     private void addActionEvents() {
     }
@@ -172,9 +168,11 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
             } 
 
             if (!keyAPI.getText().isEmpty() && !endpointURL.getText().isEmpty() && !apiName.getText().isEmpty()) {
-                api_Name.add(apiName.getText().trim());
-                api_Endpoint.add(endpointURL.getText().trim());
-                api_Key.add(keyAPI.getText().trim());
+                api_Name = apiName.getText().trim();
+                api_Endpoint= endpointURL.getText().trim();
+                api_Key= keyAPI.getText().trim();
+
+                saveAPIDetailsToFile(apiName.getText().trim(), endpointURL.getText().trim(), keyAPI.getText().trim());
 
                 this.setVisible(false);
                 this.dispose();
@@ -200,6 +198,20 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public void saveAPIDetailsToFile(String apiName, String apiUrl, String apiKey) {
+        
+        String filePath = "api_list.txt"; 
+        try (FileWriter fw = new FileWriter(filePath, true);
+             BufferedWriter writer = new BufferedWriter(fw)) {
+            writer.write("\n--" + apiName + "\n");
+            writer.write(apiUrl + "\n");
+            writer.write(apiKey + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        startScreen.reloadAPIsAndCheckboxes();
     }
     
 }
