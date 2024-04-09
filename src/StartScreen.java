@@ -21,6 +21,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
     private int wHeight = 600;
 
     private JComboBox<String> selectBox;
+    private AddAPI addAPI = null;
 
     private HashMap<String, Boolean> apiSelections = new HashMap<>();
 
@@ -64,10 +65,10 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         mainPanel.add(t1);
 
         JTextArea tonka = new JTextArea();
-        tonka.setBounds(560, 180, 600, 150);
+        tonka.setBounds(560, 180, 600, 50);
         tonka.setEditable(false);
         tonka.setLineWrap(false);
-        tonka.setFocusable(false);       //REMOVE IF GAY ONG
+        tonka.setFocusable(false);       //REMOVE IF GAY
         tonka.setWrapStyleWord(true);
         tonka.setOpaque(false);
         tonka.setFont(fontLoader("/res/fonts/Duplexide.TTF", 15f));
@@ -163,8 +164,13 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
         if (e.getActionCommand().equals("+") ) {
 
-            AddAPI addAPI = new AddAPI(this);
-            addAPI.setVisible(true);
+            if (addAPI == null || !addAPI.isVisible()) {
+                addAPI = new AddAPI(this);
+                addAPI.setVisible(true);
+            } else {
+                addAPI.toFront(); 
+                addAPI.requestFocus(); 
+            }
 
         }
 
