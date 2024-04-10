@@ -33,9 +33,12 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
     JTextField endpointURL;
     JTextField apiName;
     JTextArea error;
-
+    
+    @SuppressWarnings("unused")
     private String api_Name = "";
+    @SuppressWarnings("unused")
     private String api_Endpoint = "";
+    @SuppressWarnings("unused")
     private String api_Key = "";
 
     private StartScreen startScreen;

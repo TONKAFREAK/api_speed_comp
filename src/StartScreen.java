@@ -1,5 +1,4 @@
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.event.ActionEvent;
@@ -296,15 +295,6 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         });
     }
 
-    private boolean panelHasCheckBox(JPanel panel) {
-        Component[] components = panel.getComponents();
-        for (Component comp : components) {
-            if (comp instanceof JCheckBox) {
-                return true; 
-            }
-        }
-        return false; 
-    }
 
     private void loadModelsAndAddToComboBox() {
         String filePath = "model_list.txt"; 
