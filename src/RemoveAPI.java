@@ -124,65 +124,15 @@ public class RemoveAPI extends JFrame implements ActionListener, KeyListener {
             errorTextArea.setText("Could not rename temporary file.");
         } else {
             errorTextArea.setText("API removed successfully.");
-            removeAllCheckBoxes(startScreen.mainPanel);
-            loadAPIsAndCreateCheckboxes();
+            startScreen.reloadAPIsAndCheckboxes();
             this.setVisible(false);
             this.dispose();
-            
         }
     }
 
-    private void removeAllCheckBoxes(JPanel panel) {
-        
-        List<Component> checkboxesToRemove = new ArrayList<>();
     
-      
-        for (Component comp : panel.getComponents()) {
-            
-            if (comp instanceof JCheckBox) {
-               
-                checkboxesToRemove.add(comp);
-            }
-        }
-    
-        
-        for (Component checkBox : checkboxesToRemove) {
-            panel.remove(checkBox);
-        }
-    
-        
-        panel.revalidate();
-        panel.repaint();
-    }
 
-    private void loadAPIsAndCreateCheckboxes() {
-        
-        String filePath = "api_list.txt";
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            int count = 0;
-            int yPosition = 275; 
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("--")) {
-                    String apiName = line.substring(2).trim();
-                    JCheckBox checkBox = new JCheckBox(apiName + " ");
-                    
-                    int xPosition = (count % 2 == 0) ? 435 : 435 + 120 + 5; 
-                    if (count % 2 == 0 && count > 0) {
-                        yPosition += 35; 
-                    }
-                    checkBox.setBounds(xPosition, yPosition, 120, 30);
-                    checkBox.setFont(fontLoader("Enigma_2i.ttf", 15f));
-                    checkBox.setActionCommand(apiName);
-                    checkBox.addActionListener(this);
-                    startScreen.mainPanel.add(checkBox);
-                    count++;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    
 
     private Font fontLoader(String fontPath, float fontSize) {
         try {

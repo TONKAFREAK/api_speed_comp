@@ -183,6 +183,7 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
 
                 saveAPIDetailsToFile(apiName.getText().trim(), endpointURL.getText().trim(), keyAPI.getText().trim());
 
+                startScreen.reloadAPIsAndCheckboxes();
                 this.setVisible(false);
                 this.dispose();
                
@@ -221,63 +222,6 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        removeAllCheckBoxes(startScreen.mainPanel);
-        loadAPIsAndCreateCheckboxes();
+                   
     }
-
-    private void removeAllCheckBoxes(JPanel panel) {
-        // Create a list to hold checkboxes because you cannot modify
-        // the component list of the panel while iterating over it
-        List<Component> checkboxesToRemove = new ArrayList<>();
-    
-        // Iterate over all components in the panel
-        for (Component comp : panel.getComponents()) {
-            // Check if the component is a JCheckBox
-            if (comp instanceof JCheckBox) {
-                // Add the checkbox to the list of components to be removed
-                checkboxesToRemove.add(comp);
-            }
-        }
-    
-        // Remove all found checkboxes from the panel
-        for (Component checkBox : checkboxesToRemove) {
-            panel.remove(checkBox);
-        }
-    
-        // Revalidate and repaint the panel to reflect the changes
-        panel.revalidate();
-        panel.repaint();
-    }
-
-    private void loadAPIsAndCreateCheckboxes() {
-        
-        String filePath = "api_list.txt";
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            int count = 0;
-            int yPosition = 275; 
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("--")) {
-                    String apiName = line.substring(2).trim();
-                    JCheckBox checkBox = new JCheckBox(apiName + " ");
-                    
-                    int xPosition = (count % 2 == 0) ? 435 : 435 + 120 + 5; 
-                    if (count % 2 == 0 && count > 0) {
-                        yPosition += 35; 
-                    }
-                    checkBox.setBounds(xPosition, yPosition, 120, 30);
-                    checkBox.setFont(fontLoader("Enigma_2i.ttf", 15f));
-                    checkBox.setActionCommand(apiName);
-                    checkBox.addActionListener(this);
-                    startScreen.mainPanel.add(checkBox);
-                    count++;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    
-    
 }

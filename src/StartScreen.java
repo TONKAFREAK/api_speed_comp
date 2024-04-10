@@ -41,7 +41,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
     }
     
-    private void initUI() {
+    public void initUI() {
 
         this.setLayout(new BorderLayout());
 
