@@ -1,16 +1,22 @@
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -212,7 +218,63 @@ public class AddAPI extends JFrame implements ActionListener, KeyListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        startScreen.reloadAPIsAndCheckboxes();
+        removeAllCheckBoxes(startScreen.mainPanel);
+        loadAPIsAndCreateCheckboxes();
     }
+
+    private void removeAllCheckBoxes(JPanel panel) {
+        // Create a list to hold checkboxes because you cannot modify
+        // the component list of the panel while iterating over it
+        List<Component> checkboxesToRemove = new ArrayList<>();
+    
+        // Iterate over all components in the panel
+        for (Component comp : panel.getComponents()) {
+            // Check if the component is a JCheckBox
+            if (comp instanceof JCheckBox) {
+                // Add the checkbox to the list of components to be removed
+                checkboxesToRemove.add(comp);
+            }
+        }
+    
+        // Remove all found checkboxes from the panel
+        for (Component checkBox : checkboxesToRemove) {
+            panel.remove(checkBox);
+        }
+    
+        // Revalidate and repaint the panel to reflect the changes
+        panel.revalidate();
+        panel.repaint();
+    }
+
+    private void loadAPIsAndCreateCheckboxes() {
+        
+        String filePath = "api_list.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            int count = 0;
+            int yPosition = 275; 
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("--")) {
+                    String apiName = line.substring(2).trim();
+                    JCheckBox checkBox = new JCheckBox(apiName + " ");
+                    
+                    int xPosition = (count % 2 == 0) ? 435 : 435 + 120 + 5; 
+                    if (count % 2 == 0 && count > 0) {
+                        yPosition += 35; 
+                    }
+                    checkBox.setBounds(xPosition, yPosition, 120, 30);
+                    checkBox.setFont(fontLoader("Enigma_2i.ttf", 15f));
+                    checkBox.setActionCommand(apiName);
+                    checkBox.addActionListener(this);
+                    startScreen.mainPanel.add(checkBox);
+                    count++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    
     
 }

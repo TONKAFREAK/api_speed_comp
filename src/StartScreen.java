@@ -20,12 +20,15 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
     private int wWidth = 800;
     private int wHeight = 600;
 
-    private JComboBox<String> selectBox;
+    public JComboBox<String> selectBox;
     private AddAPI addAPI = null;
+    private AddModel addModel = null;
+    private RemoveModel removeModel = null;
+    private RemoveAPI removeAPI = null;
 
     private HashMap<String, Boolean> apiSelections = new HashMap<>();
 
-    private JPanel mainPanel;
+    public JPanel mainPanel;
 
     public StartScreen() {
         initUI();
@@ -87,11 +90,12 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         mainPanel.add(t2);
 
         selectBox = new JComboBox<>();
-        selectBox.addItem("gpt-3.5-turbo");
-        selectBox.addItem("gpt-4");
-        selectBox.addItem("claude-3-opus");
-        selectBox.addItem("claude-3-sonnet");
-        selectBox.addItem("claude-3-haiku");
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                
+                loadModelsAndAddToComboBox();
+            }
+        });
         selectBox.setBounds(t2.getX()+5, 280, 240, 30);
         selectBox.addActionListener(this);
         mainPanel.add(selectBox);
@@ -126,6 +130,20 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         removeButton.setBorder(BorderFactory.createEmptyBorder());
         removeButton.addActionListener(this);
         mainPanel.add(removeButton);
+
+        JButton addModelButton = new JButton("Add Model");
+        addModelButton.setBounds(20, 280,70,30);
+        addModelButton.setFont(fontLoader("CONSOLAB.TTF", 12f));
+        addModelButton.setBorder(BorderFactory.createEmptyBorder());
+        addModelButton.addActionListener(this);
+        mainPanel.add(addModelButton);
+
+        JButton removeModelButton = new JButton("Remove ");
+        removeModelButton.setBounds(20, 320,70,30);
+        removeModelButton.setFont(fontLoader("CONSOLAB.TTF", 12f));
+        removeModelButton.setBorder(BorderFactory.createEmptyBorder());
+        removeModelButton.addActionListener(this);
+        mainPanel.add(removeModelButton);
 
         loadAPIsAndCreateCheckboxes();
         this.add(mainPanel, BorderLayout.CENTER);
@@ -176,12 +194,34 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
         if (e.getActionCommand().equals("-") ) {
             
-            if(panelHasCheckBox(mainPanel)){
-            
-            RemoveAPI addAPI = new RemoveAPI(this);
-            addAPI.setVisible(true);
+            if (removeAPI == null || !removeAPI.isVisible()) {
+                removeAPI = new RemoveAPI(this);
+                removeAPI.setVisible(true);
+            } else {
+                removeAPI.toFront(); 
+                removeAPI.requestFocus(); 
             }
 
+        }
+
+        if (e.getActionCommand().equals("Add Model") ) {
+            if (addModel == null || !addModel.isVisible()) {
+                addModel = new AddModel(this);
+                addModel.setVisible(true);
+            } else {
+                addModel.toFront(); 
+                addModel.requestFocus(); 
+            }
+        }
+
+        if (e.getActionCommand().equals("Remove ") ) {
+            if (removeModel == null || !removeModel.isVisible()) {
+                removeModel = new RemoveModel(this);
+                removeModel.setVisible(true);
+            } else {
+                removeModel.toFront(); 
+                removeModel.requestFocus(); 
+            }
         }
     }
 
@@ -200,7 +240,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
     private Font fontLoader(String fontPath, float fontSize) {
         try {
             InputStream is = getClass().getResourceAsStream("res/fonts/" + fontPath);
-            System.out.println("Font URL: " + is);
+            //System.out.println("Font URL: " + is);
             if (is == null) {
                 System.err.println("Font file not found at res/fonts/" + fontPath);
                 return null;
@@ -245,10 +285,15 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
     }
 
     public void reloadAPIsAndCheckboxes() {
-        mainPanel.removeAll(); 
-        initUI(); 
-        mainPanel.revalidate();
-        mainPanel.repaint();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                mainPanel.removeAll();
+                initUI(); 
+                mainPanel.revalidate();
+                mainPanel.repaint();
+            }
+        });
     }
 
     private boolean panelHasCheckBox(JPanel panel) {
@@ -259,6 +304,23 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
             }
         }
         return false; 
+    }
+
+    private void loadModelsAndAddToComboBox() {
+        String filePath = "model_list.txt"; 
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String modelName;
+            while ((modelName = reader.readLine()) != null) {
+                if (!modelName.trim().isEmpty()) {
+                    selectBox.addItem(modelName.trim());
+                    mainPanel.revalidate();
+                    mainPanel.repaint();
+                    
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     
