@@ -10,3 +10,13 @@
 
 
 
+
+
+
+--Shard
+https://api.shard-ai.xyz/v1/chat/completions
+shard-hiRRdUMTY6AHNgjtfpYZByXPoYXSlnihY
+
+--a
+a
+a

@@ -16,13 +16,13 @@ public class App extends JFrame{
             try {
                 String osName = System.getProperty("os.name").toLowerCase();
                 if (osName.contains("win")) {
-                    // Set Synthetica Look and Feel on Windows
-                    UIManager.setLookAndFeel("de.javasoft.synthetica.dark.SyntheticaDarkLookAndFeel");
+                    
+                    UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatDarkLaf());
                 } else {
-                    // Use FlatLaf Dark Look and Feel on other OSes
+                    
                     UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatDarkLaf());
                 }
-            } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            } catch (UnsupportedLookAndFeelException  e) {
                 e.printStackTrace();
             }
     
