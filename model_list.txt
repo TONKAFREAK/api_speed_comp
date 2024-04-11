@@ -3,5 +3,4 @@ gpt-4
 claude-3-opus
 gemini-pro
 
-da
 
