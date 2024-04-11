@@ -89,6 +89,8 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         mainPanel.add(t2);
 
         selectBox = new JComboBox<>();
+        selectBox.setFocusable(true);
+        selectBox.setVisible(true);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 
@@ -146,6 +148,9 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
 
         loadAPIsAndCreateCheckboxes();
         this.add(mainPanel, BorderLayout.CENTER);
+
+        mainPanel.revalidate();
+        mainPanel.repaint();
 
     }
     
@@ -275,6 +280,7 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
                     checkBox.setActionCommand(apiName);
                     checkBox.addActionListener(this);
                     mainPanel.add(checkBox);
+                    
                     count++;
                 }
             }
@@ -288,12 +294,16 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
             @Override
             public void run() {
                 mainPanel.removeAll();
-                initUI(); 
+                initUI();
                 mainPanel.revalidate();
                 mainPanel.repaint();
+                // Ensuring the entire JFrame is updated
+                StartScreen.this.revalidate();
+                StartScreen.this.repaint();
             }
         });
     }
+    
 
 
     private void loadModelsAndAddToComboBox() {
@@ -303,8 +313,12 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
             while ((modelName = reader.readLine()) != null) {
                 if (!modelName.trim().isEmpty()) {
                     selectBox.addItem(modelName.trim());
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
                     mainPanel.revalidate();
                     mainPanel.repaint();
+                }
+            });
                     
                 }
             }
@@ -313,5 +327,8 @@ public class StartScreen extends JFrame implements ActionListener, KeyListener{
         }
     }
     
+    public void removeAPIFromSelections(String apiName) {
+        apiSelections.remove(apiName);
+    }
     
 }

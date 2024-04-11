@@ -125,6 +125,7 @@ public class RemoveAPI extends JFrame implements ActionListener, KeyListener {
         } else {
             errorTextArea.setText("API removed successfully.");
             startScreen.reloadAPIsAndCheckboxes();
+            startScreen.removeAPIFromSelections(apiName);
             this.setVisible(false);
             this.dispose();
         }
