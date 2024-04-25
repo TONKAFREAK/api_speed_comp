@@ -13,4 +13,4 @@ This is an application designed to test the speed and performance of APIs.
 1. Clone the repository:
 
     ```shell
-    git clone https://github.com/your-username/api_speed_comp.git
+    git clone https://github.com/TONKAFREAK/api_speed_comp.git
